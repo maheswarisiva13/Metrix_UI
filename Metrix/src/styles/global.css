@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@300;400;700&display=swap');
+
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  /* Brand colours  — taken from your screenshot */
+  --security-bg:       #4ecdc4;          /* teal panel */
+  --security-btn:      #2baaA0;          /* teal darker button */
+  --security-btn-hover:#1d8a81;
+  --security-text:     #1a3c3a;
+
+  --hr-bg:             #f5e6e0;          /* dusty pink panel */
+  --hr-btn:            #a09090;          /* muted rose-grey button */
+  --hr-btn-hover:      #8a7878;
+  --hr-text:           #3d2b2b;
+
+  --admin-btn:         #e05555;          /* coral-red top-right button */
+  --admin-btn-hover:   #c44040;
+
+  --page-bg:           #dde9f0;          /* pale blue-grey outer background */
+
+  /* Typography */
+  --font-heading: 'Nunito', sans-serif;
+  --font-body:    'Lato',   sans-serif;
+
+  /* Shared */
+  --card-radius:  22px;
+  --btn-radius:   50px;
+  --transition:   0.25s ease;
+}
+
+/* ─── Reset / Base ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-body);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; }
+button { font-family: var(--font-body); cursor: pointer; border: none; outline: none; }
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.88); }
+  70%  { transform: scale(1.03);             }
+  100% { opacity: 1; transform: scale(1);    }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
+}
