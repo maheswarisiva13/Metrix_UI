@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import FormInput from './FormInput';
+import { registerHr } from '../utils/hrService';
 
 const HRSignUpModal = ({ onClose, onDone }) => {
-  const [form, setForm]       = useState({ name: '', email: '', department: '', password: '', confirm: '' });
+  const [form, setForm]       = useState({ name: '', email: '', password: '', confirm: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState(false);
@@ -20,12 +21,25 @@ const HRSignUpModal = ({ onClose, onDone }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (form.password !== form.confirm) { setError('Passwords do not match.'); return; }
-    if (form.password.length < 8)       { setError('Password must be at least 8 characters.'); return; }
+
+    if (form.password !== form.confirm) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+
     setLoading(true);
     try {
-      // TODO: POST /api/hr  { name, email, department, password }
-      await new Promise(r => setTimeout(r, 900));
+      const data = {
+        name: form.name,
+        email: form.email,
+        password: form.password
+      };
+
+      await registerHr(data);  // Call API without department
       setSuccess(true);
     } catch (err) {
       setError(err.message || 'Signup failed.');
@@ -70,16 +84,6 @@ const HRSignUpModal = ({ onClose, onDone }) => {
                   value={form.email}
                   onChange={handleChange}
                   placeholder="jane@company.com"
-                  required
-                  focusColor="#a09090"
-                  focusShadow="rgba(160,144,144,0.22)"
-                />
-                <FormInput
-                  label="Department"
-                  name="department"
-                  value={form.department}
-                  onChange={handleChange}
-                  placeholder="Human Resources"
                   required
                   focusColor="#a09090"
                   focusShadow="rgba(160,144,144,0.22)"

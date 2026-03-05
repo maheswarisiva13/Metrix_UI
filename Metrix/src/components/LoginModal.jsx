@@ -71,34 +71,36 @@ const LoginModal = ({ role, onClose, onSuccess, onSignUp, onForgot }) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  e.preventDefault();
+  setError('');
+  setLoading(true);
 
-    try {
-      // ── Real API call ──────────────────────────────────
-      // const res = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ username: form.username, password: form.password, role }),
-      // });
-      // if (!res.ok) throw new Error((await res.json()).message || 'Login failed');
-      // const { token, user } = await res.json();
-      // onSuccess(user, token);
-      // ──────────────────────────────────────────────────
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        email: form.username,  // Backend expects `Email` in DTO
+        password: form.password 
+      }),
+    });
 
-      // ── Mock for development ───────────────────────────
-      await new Promise(r => setTimeout(r, 900));
-      if (form.password.length < 3) throw new Error('Invalid credentials. Please try again.');
-      onSuccess({ name: 'Test User', role, email: form.username }, 'mock-token-xyz');
-      // ──────────────────────────────────────────────────
-
-    } catch (err) {
-      setError(err.message || 'Something went wrong.');
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody?.message || 'Login failed');
     }
-  };
+
+    const data = await res.json();
+    const { token, role, name } = data;
+
+    onSuccess({ name, email: form.username, role }, token);
+
+  } catch (err) {
+    setError(err.message || 'Something went wrong.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // click outside to close
   const handleOverlayClick = (e) => {

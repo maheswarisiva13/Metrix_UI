@@ -1,0 +1,231 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import HRSidebar          from '../../components/hr/HRSidebar';
+import HRTopbar           from '../../components/hr/HRTopbar';
+import StatusBadge        from '../../components/hr/StatusBadge';
+import VisitorDetailPanel from '../../components/hr/VisitorDetailPanel';
+import { getVisitors, approveVisitor, rejectVisitor } from '../../utils/hrService';
+import '../../styles/hr/HRDashboard.css';
+
+const STATUS_FILTERS = ['All', 'Pending', 'Approved', 'Rejected'];
+
+const AllVisitorsPage = () => {
+  const [visitors,    setVisitors]    = useState([]);
+  const [filtered,    setFiltered]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [selected,    setSelected]    = useState(null);
+  const [actLoad,     setActLoad]     = useState(null);
+  const [statusFil,   setStatusFil]   = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [toast,       setToast]       = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const raw = await getVisitors();
+      setVisitors(Array.isArray(raw) ? raw : []);
+    } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  /* filter whenever visitors / search / status changes */
+  useEffect(() => {
+    let data = [...visitors];
+    if (statusFil !== 'All') {
+      data = data.filter(v => v.status?.toLowerCase() === statusFil.toLowerCase());
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      data = data.filter(v =>
+        v.name?.toLowerCase().includes(q) ||
+        v.company?.toLowerCase().includes(q) ||
+        v.email?.toLowerCase().includes(q) ||
+        v.registrationId?.toLowerCase().includes(q)
+      );
+    }
+    setFiltered(data);
+  }, [visitors, statusFil, searchQuery]);
+
+  const showToast = (msg, type='success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleApprove = async (id) => {
+    setActLoad('approve');
+    try {
+      const res = await approveVisitor(id);
+      setVisitors(prev => prev.map(v =>
+        v.id === id ? { ...v, status:'Approved', registrationId: res.registrationId } : v
+      ));
+      setSelected(prev => prev ? { ...prev, status:'Approved', registrationId: res.registrationId } : null);
+      showToast(`✅ Approved! ID: ${res.registrationId}`);
+    } catch { showToast('Failed to approve.','error'); }
+    finally   { setActLoad(null); }
+  };
+
+  const handleReject = async (id) => {
+    setActLoad('reject');
+    try {
+      await rejectVisitor(id);
+      setVisitors(prev => prev.map(v => v.id === id ? { ...v, status:'Rejected' } : v));
+      setSelected(prev => prev ? { ...prev, status:'Rejected' } : null);
+      showToast('❌ Visitor rejected.');
+    } catch { showToast('Failed to reject.','error'); }
+    finally   { setActLoad(null); }
+  };
+
+  /* counts per status */
+  const counts = {
+    All:      visitors.length,
+    Pending:  visitors.filter(v=>v.status==='Pending').length,
+    Approved: visitors.filter(v=>v.status==='Approved').length,
+    Rejected: visitors.filter(v=>v.status==='Rejected').length,
+  };
+
+  return (
+    <div className="hr-layout">
+      <HRSidebar pendingCount={counts.Pending} />
+
+      <div className="hr-main">
+        <HRTopbar
+          title="All Visitors"
+          breadcrumb="HR Portal / All Visitors"
+          onSearch={q => setSearchQuery(q)}
+        />
+
+        <div className="page-content">
+          <div className="page-header">
+            <div>
+              <div className="page-header__title">👥 Visitor Registry</div>
+              <div className="page-header__sub">
+                {loading ? 'Loading…' : `${filtered.length} of ${visitors.length} visitors shown`}
+              </div>
+            </div>
+          </div>
+
+          {/* Toast */}
+          {toast && (
+            <div className={`alert alert--${toast.type === 'error' ? 'error' : 'success'}`}>
+              {toast.msg}
+            </div>
+          )}
+
+          <div className="content-card">
+            {/* Toolbar */}
+            <div className="content-card__head">
+              <span className="content-card__title">Visitors</span>
+              <div className="table-toolbar">
+                {/* Status filter tabs */}
+                <div style={{ display:'flex', gap:6 }}>
+                  {STATUS_FILTERS.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setStatusFil(s)}
+                      style={{
+                        padding:'5px 12px',
+                        borderRadius: 20,
+                        border: `1.5px solid ${statusFil === s ? 'var(--teal)' : 'var(--border-color)'}`,
+                        background: statusFil === s ? 'var(--teal-soft)' : 'transparent',
+                        color: statusFil === s ? 'var(--teal-dark)' : 'var(--text-mid)',
+                        fontWeight: statusFil === s ? 700 : 600,
+                        fontSize:'0.78rem',
+                        cursor:'pointer',
+                        fontFamily:'var(--font-body)',
+                        transition:'all 0.15s',
+                      }}
+                    >
+                      {s}
+                      <span style={{ marginLeft:5, opacity:0.7 }}>({counts[s]})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="empty-state">
+                <div className="empty-state__sub">Loading visitors…</div>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state__icon">🔍</div>
+                <div className="empty-state__title">No visitors found</div>
+                <div className="empty-state__sub">Try adjusting your search or filter.</div>
+              </div>
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Visitor</th>
+                    <th>Registration ID</th>
+                    <th>Purpose</th>
+                    <th>Visit Date</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(v => (
+                    <tr
+                      key={v.id}
+                      style={{ cursor:'pointer' }}
+                      onClick={() => setSelected(v)}
+                    >
+                      <td>
+                        <div className="visitor-cell">
+                          <div className="visitor-avatar">
+                            {v.name?.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="visitor-name">{v.name}</div>
+                            <div className="visitor-email">{v.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        {v.registrationId
+                          ? <code style={{ fontSize:'0.78rem', color:'var(--teal-dark)', fontWeight:700 }}>{v.registrationId}</code>
+                          : <span style={{ color:'var(--text-light)', fontSize:'0.78rem' }}>Not assigned</span>
+                        }
+                      </td>
+                      <td>{v.purpose}</td>
+                      <td style={{ whiteSpace:'nowrap' }}>
+                        {new Date(v.visitDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
+                      </td>
+                      <td>
+                        <StatusBadge status={v.status} />
+                      </td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <button
+                          className="btn btn--outline btn--sm btn--icon"
+                          onClick={() => setSelected(v)}
+                          title="View details"
+                        >
+                          👁
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Detail panel */}
+      {selected && (
+        <VisitorDetailPanel
+          visitor={selected}
+          onClose={() => setSelected(null)}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          actionLoading={actLoad}
+        />
+      )}
+    </div>
+  );
+};
+
+export default AllVisitorsPage;
