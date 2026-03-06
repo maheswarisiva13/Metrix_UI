@@ -75,7 +75,7 @@ export const getInvitations     = ()   => get('/invitations');
 
 /**
  * POST /api/invitations/send
- * hrId is NOT sent in the body — backend reads it from the JWT token.
+ * hrId is NOT sent in the body — backend reads it from the JWT(JSON Web Token) token...
  */
 export const sendInvitation = (data) =>
   post('/invitations/send', {
