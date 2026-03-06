@@ -64,7 +64,6 @@ const PendingApprovalsPage = () => {
     setFiltered(
       visitors.filter(v =>
         v.name?.toLowerCase().includes(lower) ||
-        v.company?.toLowerCase().includes(lower) ||
         v.email?.toLowerCase().includes(lower) ||
         v.purpose?.toLowerCase().includes(lower)
       )
@@ -129,7 +128,6 @@ const PendingApprovalsPage = () => {
                 <thead>
                   <tr>
                     <th>Visitor</th>
-                    <th>Company</th>
                     <th>Purpose</th>
                     <th>Visit Date</th>
                     <th>Submitted</th>
@@ -155,14 +153,12 @@ const PendingApprovalsPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td>{v.company}</td>
                       <td>{v.purpose}</td>
                       <td style={{ whiteSpace:'nowrap' }}>
                         {new Date(v.visitDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
                       </td>
                       <td style={{ whiteSpace:'nowrap', fontSize:'0.78rem', color:'var(--text-light)' }}>
-                        {new Date(v.submittedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
-                        {' '}
+                        {new Date(v.submittedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}{' '}
                         {new Date(v.submittedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}
                       </td>
                       <td>

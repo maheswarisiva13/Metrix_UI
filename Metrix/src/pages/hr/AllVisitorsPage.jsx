@@ -8,6 +8,17 @@ import '../../styles/hr/HRDashboard.css';
 
 const STATUS_FILTERS = ['All', 'Pending', 'Approved', 'Rejected'];
 
+const toDateStr = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+
+const fmtSelectedDate = (dateStr) => {
+  if (!dateStr) return '';
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+};
+
 const AllVisitorsPage = () => {
   const [visitors,    setVisitors]    = useState([]);
   const [filtered,    setFiltered]    = useState([]);
@@ -16,6 +27,7 @@ const AllVisitorsPage = () => {
   const [actLoad,     setActLoad]     = useState(null);
   const [statusFil,   setStatusFil]   = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter,  setDateFilter]  = useState('');
   const [toast,       setToast]       = useState(null);
 
   const load = useCallback(async () => {
@@ -28,23 +40,27 @@ const AllVisitorsPage = () => {
 
   useEffect(() => { load(); }, [load]);
 
-  /* filter whenever visitors / search / status changes */
+  /* filter whenever visitors / search / status / date changes */
   useEffect(() => {
     let data = [...visitors];
     if (statusFil !== 'All') {
       data = data.filter(v => v.status?.toLowerCase() === statusFil.toLowerCase());
     }
+    if (dateFilter) {
+      data = data.filter(v => toDateStr(v.visitDate) === dateFilter);
+    }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       data = data.filter(v =>
-        v.name?.toLowerCase().includes(q) ||
-        v.company?.toLowerCase().includes(q) ||
-        v.email?.toLowerCase().includes(q) ||
-        v.registrationId?.toLowerCase().includes(q)
+        v.name?.toLowerCase().includes(q)           ||
+        v.company?.toLowerCase().includes(q)        ||
+        v.email?.toLowerCase().includes(q)          ||
+        v.registrationId?.toLowerCase().includes(q) ||
+        v.purpose?.toLowerCase().includes(q)
       );
     }
     setFiltered(data);
-  }, [visitors, statusFil, searchQuery]);
+  }, [visitors, statusFil, searchQuery, dateFilter]);
 
   const showToast = (msg, type='success') => {
     setToast({ msg, type });
@@ -75,12 +91,13 @@ const AllVisitorsPage = () => {
     finally   { setActLoad(null); }
   };
 
-  /* counts per status */
+  const clearDate = () => setDateFilter('');
+
   const counts = {
     All:      visitors.length,
-    Pending:  visitors.filter(v=>v.status==='Pending').length,
-    Approved: visitors.filter(v=>v.status==='Approved').length,
-    Rejected: visitors.filter(v=>v.status==='Rejected').length,
+    Pending:  visitors.filter(v => v.status === 'Pending').length,
+    Approved: visitors.filter(v => v.status === 'Approved').length,
+    Rejected: visitors.filter(v => v.status === 'Rejected').length,
   };
 
   return (
@@ -95,14 +112,42 @@ const AllVisitorsPage = () => {
         />
 
         <div className="page-content">
+
+          {/* Page header */}
           <div className="page-header">
             <div>
               <div className="page-header__title">👥 Visitor Registry</div>
               <div className="page-header__sub">
-                {loading ? 'Loading…' : `${filtered.length} of ${visitors.length} visitors shown`}
+                {loading ? 'Loading…'
+                  : dateFilter
+                    ? `${filtered.length} visitor${filtered.length !== 1 ? 's' : ''} on ${fmtSelectedDate(dateFilter)}`
+                    : `${filtered.length} of ${visitors.length} visitors shown`}
               </div>
             </div>
+
+            {/* Date picker */}
+            <div className="hr-date-picker-wrap">
+              <span className="hr-date-picker-icon">📅</span>
+              <input
+                type="date"
+                className="hr-date-picker"
+                value={dateFilter}
+                onChange={e => { setDateFilter(e.target.value); setSelected(null); }}
+                title="Filter by visit date"
+              />
+              {dateFilter && (
+                <button className="hr-date-clear" onClick={clearDate} title="Clear">✕</button>
+              )}
+            </div>
           </div>
+
+          {/* Active date banner */}
+          {dateFilter && (
+            <div className="hr-date-banner">
+              <span>📅 Showing visits on: <strong>{fmtSelectedDate(dateFilter)}</strong></span>
+              <button onClick={clearDate}>Clear ✕</button>
+            </div>
+          )}
 
           {/* Toast */}
           {toast && (
@@ -114,32 +159,23 @@ const AllVisitorsPage = () => {
           <div className="content-card">
             {/* Toolbar */}
             <div className="content-card__head">
-              <span className="content-card__title">Visitors</span>
+              <span className="content-card__title">
+                Visitors
+                {!loading && (
+                  <span className="hr-count-badge">{filtered.length}</span>
+                )}
+              </span>
               <div className="table-toolbar">
-                {/* Status filter tabs */}
-                <div style={{ display:'flex', gap:6 }}>
-                  {STATUS_FILTERS.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => setStatusFil(s)}
-                      style={{
-                        padding:'5px 12px',
-                        borderRadius: 20,
-                        border: `1.5px solid ${statusFil === s ? 'var(--teal)' : 'var(--border-color)'}`,
-                        background: statusFil === s ? 'var(--teal-soft)' : 'transparent',
-                        color: statusFil === s ? 'var(--teal-dark)' : 'var(--text-mid)',
-                        fontWeight: statusFil === s ? 700 : 600,
-                        fontSize:'0.78rem',
-                        cursor:'pointer',
-                        fontFamily:'var(--font-body)',
-                        transition:'all 0.15s',
-                      }}
-                    >
-                      {s}
-                      <span style={{ marginLeft:5, opacity:0.7 }}>({counts[s]})</span>
-                    </button>
-                  ))}
-                </div>
+                {STATUS_FILTERS.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFil(s)}
+                    className={`hr-status-tab${statusFil === s ? ' hr-status-tab--active' : ''}`}
+                  >
+                    {s}
+                    <span className="hr-status-tab__count">{counts[s]}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -147,12 +183,31 @@ const AllVisitorsPage = () => {
               <div className="empty-state">
                 <div className="empty-state__sub">Loading visitors…</div>
               </div>
+
             ) : filtered.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state__icon">🔍</div>
-                <div className="empty-state__title">No visitors found</div>
-                <div className="empty-state__sub">Try adjusting your search or filter.</div>
+                <div className="empty-state__icon">{dateFilter ? '📅' : '🔍'}</div>
+                <div className="empty-state__title">
+                  {dateFilter
+                    ? `No visitors on ${fmtSelectedDate(dateFilter)}`
+                    : 'No visitors found'}
+                </div>
+                <div className="empty-state__sub">
+                  {dateFilter
+                    ? 'Try a different date or clear the filter.'
+                    : 'Try adjusting your search or filter.'}
+                </div>
+                {dateFilter && (
+                  <button
+                    className="btn btn--outline btn--sm"
+                    style={{ marginTop: 8 }}
+                    onClick={clearDate}
+                  >
+                    Clear date filter
+                  </button>
+                )}
               </div>
+
             ) : (
               <table className="data-table">
                 <thead>
@@ -169,13 +224,13 @@ const AllVisitorsPage = () => {
                   {filtered.map(v => (
                     <tr
                       key={v.id}
-                      style={{ cursor:'pointer' }}
+                      style={{ cursor: 'pointer' }}
                       onClick={() => setSelected(v)}
                     >
                       <td>
                         <div className="visitor-cell">
                           <div className="visitor-avatar">
-                            {v.name?.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}
+                            {v.name?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
                           </div>
                           <div>
                             <div className="visitor-name">{v.name}</div>
@@ -185,13 +240,15 @@ const AllVisitorsPage = () => {
                       </td>
                       <td>
                         {v.registrationId
-                          ? <code style={{ fontSize:'0.78rem', color:'var(--teal-dark)', fontWeight:700 }}>{v.registrationId}</code>
+                          ? <code style={{ fontSize:'0.78rem', color:'var(--teal-dark)', fontWeight:700 }}>
+                              {v.registrationId}
+                            </code>
                           : <span style={{ color:'var(--text-light)', fontSize:'0.78rem' }}>Not assigned</span>
                         }
                       </td>
-                      <td>{v.purpose}</td>
-                      <td style={{ whiteSpace:'nowrap' }}>
-                        {new Date(v.visitDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
+                      <td style={{ fontSize: '0.83rem' }}>{v.purpose}</td>
+                      <td style={{ whiteSpace: 'nowrap', fontSize: '0.83rem' }}>
+                        {new Date(v.visitDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}
                       </td>
                       <td>
                         <StatusBadge status={v.status} />
