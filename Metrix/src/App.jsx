@@ -1,7 +1,5 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE: src/App.jsx   (REPLACE EXISTING)
-// Change: /register now loads VisitorRegistrationPage instead of Placeholder
-// ─────────────────────────────────────────────────────────────────────────────
+// src/App.jsx
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -12,19 +10,21 @@ import LoginPage from './pages/LoginPage';
 import HRDashboardPage      from './pages/hr/HRDashboardPage';
 import SendInvitationPage   from './pages/hr/SendInvitationPage';
 import PendingApprovalsPage from './pages/hr/PendingApprovalsPage';
-import HRAllVisitorsPage      from './pages/hr/AllVisitorsPage';
+import HRAllVisitorsPage    from './pages/hr/AllVisitorsPage';
 
 // Security pages
-import SecurityDashboardPage from './pages/security/SecurityDashboardPage';
-import CheckInPage          from './pages/security/CheckInPage';
-import InsideNowPage         from './pages/security/InsideNowPage';
-import TodayLogPage          from './pages/security/TodayLogPage';
+import SecurityDashboardPage    from './pages/security/SecurityDashboardPage';
+import CheckInPage              from './pages/security/CheckInPage';
+import InsideNowPage            from './pages/security/InsideNowPage';
+import TodayLogPage             from './pages/security/TodayLogPage';
 import SecurityAllVisitorsPage  from './pages/security/AllVisitorsPage';
 
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import SecurityUsersPage    from './pages/admin/SecurityUsersPage';
+import AdminAllVisitorsPage from './pages/admin/AllVisitorsPage';
 
-// Public visitor registration
+// Public
 import VisitorRegistrationPage from './pages/visitor/VisitorRegistrationPage';
 
 import { isLoggedIn, getUser } from './utils/auth';
@@ -76,9 +76,12 @@ function App() {
         {/* ── Admin ──────────────────────────────────── */}
         <Route path="/admin/dashboard"
           element={<Guard role="admin"><AdminDashboardPage /></Guard>} />
+        <Route path="/admin/security-users"
+           element={<Guard role="admin"><SecurityUsersPage /></Guard>} />
+        <Route path="/admin/visitors"
+           element={<Guard role="admin"><AdminAllVisitorsPage /></Guard>} />
 
-        {/* ── PUBLIC: Visitor self-registration ─────── */}
-        {/* No guard — anyone with the link can access   */}
+        {/* ── Public ─────────────────────────────────── */}
         <Route path="/register" element={<VisitorRegistrationPage />} />
 
         <Route path="*" element={<Navigate to="/login" replace />} />

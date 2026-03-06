@@ -1,43 +1,30 @@
-import React from 'react';
+// src/components/admin/AdminTopbar.jsx
 
-/**
- * AdminTopbar
- * @param {string}   title      - Page heading (e.g. "Admin Panel — Raj")
- * @param {string}   breadcrumb - Small breadcrumb text (e.g. "Admin / Dashboard")
- * @param {function} onSearch   - Called with the current search string on each keystroke
- */
+import React, { useState } from 'react';
+
 const AdminTopbar = ({ title, breadcrumb, onSearch }) => {
+  const [query, setQuery] = useState('');
+  const handleSearch = e => { setQuery(e.target.value); onSearch?.(e.target.value); };
+
   return (
     <header className="adm-topbar">
-      <div>
+      <div className="adm-topbar__left">
         <div className="adm-topbar__title">{title}</div>
-        {breadcrumb && (
-          <div className="adm-topbar__breadcrumb">{breadcrumb}</div>
-        )}
+        {breadcrumb && <div className="adm-topbar__breadcrumb">{breadcrumb}</div>}
       </div>
-
       <div className="adm-topbar__right">
-        {/* Search */}
-        {onSearch && (
+        {onSearch !== undefined && (
           <div className="adm-topbar__search">
-            <span>🔍</span>
+            <span className="adm-topbar__search-icon">🔍</span>
             <input
-              placeholder="Search users…"
-              onChange={e => onSearch(e.target.value)}
+              type="text"
+              placeholder="Search..."
+              value={query}
+              onChange={handleSearch}
             />
           </div>
         )}
-
-        {/* Notification bell */}
-        <button className="adm-topbar__icon-btn" title="Notifications">
-          🔔
-          <span className="adm-topbar__notif-dot">0</span>
-        </button>
-
-        {/* Settings shortcut */}
-        <button className="adm-topbar__icon-btn" title="Settings">
-          ⚙️
-        </button>
+       
       </div>
     </header>
   );

@@ -1,4 +1,4 @@
-// src/utils/securityService.js
+// src/utils/adminService.js
 
 import { getToken, clearSession } from './auth';
 
@@ -24,12 +24,10 @@ const request = async (endpoint, options = {}) => {
 const get  = (ep)       => request(ep, { method: 'GET' });
 const post = (ep, data) => request(ep, { method: 'POST', body: JSON.stringify(data) });
 
-export const getSecurityDashboard = () => get('/security/dashboard');
-export const getTodayVisitors     = () => get('/security/visitors/today');
-export const getCheckedInVisitors = () => get('/security/visitors/checked-in');
-export const getAllVisitors        = () => get('/security/visitors/all');
-export const getTodayVisitLogs    = () => get('/security/logs/today');
-export const lookupVisitor        = (regId) => get(`/security/visitor/lookup?registrationId=${encodeURIComponent(regId)}`);
-export const checkInVisitor       = (id) => post(`/security/visitor/${id}/check-in`);
-export const checkOutVisitor      = (id) => post(`/security/visitor/${id}/check-out`);
-export const getVisitorHistory = () => get('/security/visitors/history');
+export const getAdminDashboard  = ()           => get('/admin/dashboard');
+
+export const getSecurityUsers   = ()           => get('/admin/security-users');
+export const getAllVisitors      = ()           => get('/admin/visitors');
+export const getSystemActivity  = ()           => get('/admin/activity');
+export const createSecurityUser = (data)       => post('/admin/security-users', data);
+export const deactivateUser     = (id, role)   => post(`/admin/${role}-users/${id}/deactivate`);
