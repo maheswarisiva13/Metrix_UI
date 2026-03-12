@@ -68,7 +68,8 @@ const AllVisitorsPage = () => {
         getVisitorHistory(),
         getCheckedInVisitors(),
       ]);
-      const list = hist || [];
+      //const list = hist || [];
+      const list = (hist || []).filter(v => v.approvedAt);
       setVisitors(list);
       setInsideCount((inside || []).length);
       applyFilters(list, tab, search, dateFilter);

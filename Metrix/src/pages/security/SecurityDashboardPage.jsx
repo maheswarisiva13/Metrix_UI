@@ -232,13 +232,13 @@ const SecurityDashboardPage = () => {
                     >
                       Cancel
                     </button>
-                    <button
+                    {/*<button
                       className="sec-btn-check-in"
                       onClick={() => handleCheckIn(lookupRes.id)}
                       disabled={actionId === lookupRes.id || lookupRes.status !== 'Approved'}
                     >
                       {actionId === lookupRes.id ? 'Checking In...' : '✅ Check In'}
-                    </button>
+                    </button>*/}
                   </div>
                 </div>
               )}

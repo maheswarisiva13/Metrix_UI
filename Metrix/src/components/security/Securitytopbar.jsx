@@ -52,13 +52,13 @@ const SecurityTopbar = ({ title, breadcrumb, alertCount = 0 }) => {
           </div>
         )}
 
-        {/* Notification bell */}
+        {/* Notification bell
         <button className="sec-topbar__icon-btn" title="Alerts">
           🔔
           {alertCount > 0 && (
             <span className="sec-topbar__notif-dot">{alertCount}</span>
           )}
-        </button>
+        </button> */}
       </div>
     </header>
   );

@@ -19,7 +19,7 @@ const CreateModal = ({ onClose, onCreate }) => {
     if (!form.name.trim() || !form.email.trim() || !form.password.trim()) {
       setErr('All fields are required.'); return;
     }
-    if (form.password.length < 8) { setErr('Password must be at least 8 characters.'); return; }
+    if (form.password.length < 6) { setErr('Password must be at least 6 characters.'); return; }
     setSaving(true); setErr('');
     try { await onCreate(form); onClose(); }
     catch (e) { setErr(e.message || 'Failed to create account.'); }
@@ -48,7 +48,7 @@ const CreateModal = ({ onClose, onCreate }) => {
             <div style={{ position:'relative' }}>
               <input
                 type={show ? 'text' : 'password'}
-                placeholder="Min. 8 characters"
+                placeholder="Min. 6 characters"
                 value={form.password}
                 onChange={set('password')}
                 style={{ paddingRight:42 }}
@@ -77,17 +77,57 @@ const CreateModal = ({ onClose, onCreate }) => {
   );
 };
 
+/* ── Confirm Deactivate Modal ─────────────────────────────── */
+const ConfirmDeactivateModal = ({ user, onClose, onConfirm, loading }) => (
+  <div className="adm-modal-overlay" onClick={onClose}>
+    <div className="adm-modal adm-modal--sm" onClick={e => e.stopPropagation()}>
+      <div className="adm-modal__head">
+        <span className="adm-modal__title">⛔ Deactivate Account</span>
+        <button className="adm-modal__close" onClick={onClose}>✕</button>
+      </div>
+      <div className="adm-modal__body">
+        <div style={{ textAlign:'center', padding:'8px 0 16px' }}>
+          <div style={{
+            width:56, height:56, borderRadius:'50%',
+            background:'var(--danger-bg)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            margin:'0 auto 16px', fontSize:'1.6rem'
+          }}>
+            ⛔
+          </div>
+          <div style={{ fontFamily:'var(--font-heading)', fontSize:'1.05rem', fontWeight:800, color:'var(--text-dark)', marginBottom:8 }}>
+            Deactivate {user.name}?
+          </div>
+          <div style={{ fontSize:'0.85rem', color:'var(--text-mid)', lineHeight:1.6 }}>
+            This will revoke their access to the Security Portal.
+            They will <strong>not be able to log in</strong> after this action.
+          </div>
+        </div>
+      </div>
+      <div className="adm-modal__footer">
+        <button className="adm-btn adm-btn--outline" onClick={onClose} disabled={loading}>
+          Cancel
+        </button>
+        <button className="adm-btn adm-btn--danger" onClick={onConfirm} disabled={loading}>
+          {loading ? 'Deactivating…' : '⛔ Yes, Deactivate'}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 /* ═══════════════════════════════════════════════════════════
    MAIN
    ═══════════════════════════════════════════════════════════ */
 const SecurityUsersPage = () => {
-  const [users,      setUsers]      = useState([]);
-  const [filtered,   setFiltered]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
-  const [actionId,   setActionId]   = useState(null);
-  const [toast,      setToast]      = useState(null);
-  const [filter,     setFilter]     = useState('all');
+  const [users,       setUsers]       = useState([]);
+  const [filtered,    setFiltered]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [showCreate,  setShowCreate]  = useState(false);
+  const [confirmUser, setConfirmUser] = useState(null);
+  const [actionId,    setActionId]    = useState(null);
+  const [toast,       setToast]       = useState(null);
+  const [filter,      setFilter]      = useState('all');
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -128,11 +168,15 @@ const SecurityUsersPage = () => {
     await load();
   };
 
-  const handleDeactivate = async (id, name) => {
-    setActionId(id);
+  const handleDeactivateClick = (user) => setConfirmUser(user);
+
+  const handleDeactivateConfirm = async () => {
+    if (!confirmUser) return;
+    setActionId(confirmUser.id);
     try {
-      await deactivateUser(id, 'security');
-      showToast(`🚫 ${name}'s account has been deactivated.`);
+      await deactivateUser(confirmUser.id);
+      showToast(`🚫 ${confirmUser.name}'s account has been deactivated.`);
+      setConfirmUser(null);
       await load();
     } catch (e) {
       showToast(e.message || 'Action failed.', 'error');
@@ -165,9 +209,9 @@ const SecurityUsersPage = () => {
           {/* Mini stats */}
           <div className="adm-mini-stats">
             {[
-              { label:'Total',    value:users.length,  icon:'🛡️', color:'var(--info)'        },
-              { label:'Active',   value:activeCount,   icon:'✅', color:'var(--success)'     },
-              { label:'Inactive', value:inactiveCount, icon:'⛔', color:'var(--text-light)'  },
+              { label:'Total',    value:users.length,  icon:'🛡️', color:'var(--info)'       },
+              { label:'Active',   value:activeCount,   icon:'✅', color:'var(--success)'    },
+              { label:'Inactive', value:inactiveCount, icon:'⛔', color:'var(--text-light)' },
             ].map(s => (
               <div className="adm-mini-stat" key={s.label}>
                 <span style={{ fontSize:'1.5rem' }}>{s.icon}</span>
@@ -264,7 +308,7 @@ const SecurityUsersPage = () => {
                         {u.isActive ? (
                           <button
                             className="adm-btn adm-btn--danger adm-btn--sm"
-                            onClick={() => handleDeactivate(u.id, u.name)}
+                            onClick={() => handleDeactivateClick(u)}
                             disabled={actionId === u.id}
                           >
                             {actionId === u.id ? '…' : 'Deactivate'}
@@ -282,7 +326,18 @@ const SecurityUsersPage = () => {
         </div>
       </div>
 
-      {showCreate && <CreateModal onClose={() => setShowCreate(false)} onCreate={handleCreate} />}
+      {showCreate && (
+        <CreateModal onClose={() => setShowCreate(false)} onCreate={handleCreate} />
+      )}
+
+      {confirmUser && (
+        <ConfirmDeactivateModal
+          user={confirmUser}
+          onClose={() => setConfirmUser(null)}
+          onConfirm={handleDeactivateConfirm}
+          loading={actionId === confirmUser?.id}
+        />
+      )}
     </div>
   );
 };
