@@ -1,11 +1,8 @@
 /**
  * hrService.js
  *
- * Pure API service — no mock data.
- * All data comes from your .NET Core Web API → PostgreSQL database.
- *
  * Vite proxies /api → https://localhost:7275 (configured in vite.config.js)
- * So fetch('/api/...') in dev automatically hits your .NET backend.
+ * So fetch('/api/...') in dev automatically hits our .NET backend.
  */
 
 import { getToken, clearSession } from './auth';

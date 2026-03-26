@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 /**
  * FormInput
@@ -22,6 +23,7 @@ const FormInput = ({
   return (
     <div className="form-group">
       {label && <label className="form-label" htmlFor={name}>{label}</label>}
+
       <div style={{ position: 'relative' }}>
         <input
           id={name}
@@ -34,29 +36,37 @@ const FormInput = ({
           autoComplete={autoComplete}
           className="form-input"
           style={{
-            '--focus-color':  focusColor,
+            '--focus-color': focusColor,
             '--focus-shadow': focusShadow,
             paddingRight: isPassword ? 44 : 16,
           }}
         />
+
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPw(p => !p)}
             style={{
               position: 'absolute',
-              right: 13, top: '50%',
+              right: 13,
+              top: '50%',
               transform: 'translateY(-50%)',
-              background: 'none', border: 'none',
-              cursor: 'pointer', fontSize: '1rem',
-              color: '#94a3b8', lineHeight: 1,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              color: '#94a3b8',
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center'
             }}
             tabIndex={-1}
             aria-label={showPw ? 'Hide password' : 'Show password'}
           >
-            {showPw ? '🙈' : '👁️'}
+            {showPw ? <FaEyeSlash /> : <FaEye />}
           </button>
         )}
+
       </div>
     </div>
   );

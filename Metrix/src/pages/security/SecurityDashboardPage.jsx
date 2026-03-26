@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SecuritySidebar from '../../components/security/SecuritySidebar';
-import SecurityTopbar  from '../../components/security/SecurityTopbar';
+import SecurityTopbar  from '../../components/security/Securitytopbar';
 import {
   getSecurityDashboard,
   getTodayVisitors,
@@ -102,7 +102,6 @@ const SecurityDashboardPage = () => {
   };
 
   const statCards = [
-    { label: 'Today Visitors',  value: stats?.todayVisitors,    icon: '📅', bg: '#e0f7f5', color: 'var(--teal-dark)',  sub: 'Scheduled today',    delay: '0.05s' },
     { label: 'Inside Now',      value: stats?.insideNow,        icon: '🏢', bg: '#f0fdf4', color: 'var(--success)',    sub: 'Currently checked in', delay: '0.10s' },
     { label: 'Checked In Today',value: stats?.checkedInToday,   icon: '✅', bg: '#fffbeb', color: 'var(--warning)',    sub: 'Entries today',       delay: '0.15s' },
     { label: 'Checked Out',     value: stats?.checkedOutToday,  icon: '🚪', bg: '#eff6ff', color: 'var(--info)',       sub: 'Exits today',         delay: '0.20s' },
@@ -296,7 +295,7 @@ const SecurityDashboardPage = () => {
             </div>
           </div>
 
-          {/* ── Today's Visitors ───────────────────────── */}
+          {/* ── Today's Visitors ───────────────────────── 
           <div className="sec-card">
             <div className="sec-card__head">
               <span className="sec-card__title">📅 Today's Expected Visitors</span>
@@ -353,7 +352,7 @@ const SecurityDashboardPage = () => {
                 </div>
               ))
             )}
-          </div>
+          </div>*/}
 
         </div>
       </div>

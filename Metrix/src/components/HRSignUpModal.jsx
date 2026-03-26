@@ -39,7 +39,7 @@ const HRSignUpModal = ({ onClose, onDone }) => {
         password: form.password
       };
 
-      await registerHr(data);  // Call API without department
+      await registerHr(data);  
       setSuccess(true);
     } catch (err) {
       setError(err.message || 'Signup failed.');

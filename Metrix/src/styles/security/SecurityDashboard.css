@@ -1,7 +1,7 @@
-/* ═══════════════════════════════════════════════════════════
-   SECURITY DASHBOARD STYLES — Metrix VMS
-   Dark navy sidebar · teal accent · mono registration IDs
-   ═══════════════════════════════════════════════════════════ */
+/* 
+   SECURITY DASHBOARD STYLES — Metrix 
+   
+    */
 
 :root {
   --sidebar-w:         240px;
@@ -55,7 +55,7 @@
 
 /* ── Topbar ──────────────────────────────────────────────── */
 .sec-topbar { height:64px; background:#fff; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; padding:0 28px; position:sticky; top:0; z-index:40; flex-shrink:0; }
-.sec-topbar__left {}
+
 .sec-topbar__title { font-family:var(--font-heading); font-weight:800; font-size:1.05rem; color:var(--text-dark); }
 .sec-topbar__breadcrumb { font-size:0.75rem; color:var(--text-light); margin-top:2px; }
 .sec-topbar__right { display:flex; align-items:center; gap:10px; }

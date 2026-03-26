@@ -40,7 +40,7 @@ const AllVisitorsPage = () => {
 
   useEffect(() => { load(); }, [load]);
 
-  /* filter whenever visitors / search / status / date changes */
+  
   useEffect(() => {
     let data = [...visitors];
     if (statusFil !== 'All') {

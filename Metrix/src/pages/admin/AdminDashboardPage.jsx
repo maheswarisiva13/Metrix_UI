@@ -1,6 +1,7 @@
 // src/pages/admin/AdminDashboardPage.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminTopbar  from '../../components/admin/AdminTopbar';
 import {
@@ -71,7 +72,7 @@ const CreateModal = ({ onClose, onCreate }) => {
             <label>Password</label>
             <div className="adm-input-wrap">
               <input type={show ? 'text' : 'password'} placeholder="Min. 6 characters" value={form.password} onChange={set('password')} />
-              <button className="adm-input-eye" onClick={() => setShow(s => !s)} tabIndex={-1}>{show ? '🙈' : '👁️'}</button>
+              <button className="adm-input-eye" onClick={() => setShow(s => !s)} tabIndex={-1}> {show ? <FaEyeSlash /> : <FaEye />}</button>
             </div>
           </div>
           <div className="adm-modal-hint">

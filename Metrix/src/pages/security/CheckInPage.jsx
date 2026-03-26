@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import SecuritySidebar from '../../components/security/SecuritySidebar';
-import SecurityTopbar  from '../../components/security/SecurityTopbar';
+import SecurityTopbar  from '../../components/security/Securitytopbar';
 import {
   getCheckedInVisitors,
   lookupVisitor,
@@ -93,7 +93,10 @@ const CheckInPage = () => {
     try {
       await checkOutVisitor(id);
       showToast(`🚪 ${name} has been checked out.`);
+      setLookupRes(null);        // ← clears the result card
+      setRegInput('');           // ← resets the input
       await loadInside();
+      inputRef.current?.focus(); // ← returns focus to input
     } catch (err) {
       showToast(err.message || 'Check-out failed. Please try again.', 'error');
     } finally { setActionId(null); }
@@ -248,7 +251,9 @@ const CheckInPage = () => {
                           onClick={() => handleCheckOut(lookupRes.id, lookupRes.name)}
                           disabled={actionId === lookupRes.id}
                         >
-                          {actionId === lookupRes.id ? <><span className="sec-spin" /> Processing…</> : '🚪 Check Out'}
+                          {actionId === lookupRes.id
+                            ? <><span className="sec-spin" /> Processing…</>
+                            : '🚪 Check Out'}
                         </button>
                       )}
 
@@ -259,7 +264,9 @@ const CheckInPage = () => {
                           onClick={() => handleCheckIn(lookupRes.id, lookupRes.name)}
                           disabled={actionId === lookupRes.id}
                         >
-                          {actionId === lookupRes.id ? <><span className="sec-spin" /> Checking In…</> : '✅ Check In'}
+                          {actionId === lookupRes.id
+                            ? <><span className="sec-spin" /> Checking In…</>
+                            : '✅ Check In'}
                         </button>
                       )}
                     </div>
@@ -270,7 +277,7 @@ const CheckInPage = () => {
                 {!lookupRes && !lookupErr && (
                   <div className="sec-empty">
                     <div className="sec-empty__icon">🪪</div>
-                    <div className="sec-empty__title">type a Registration ID</div>
+                    <div className="sec-empty__title">Type a Registration ID</div>
                     <div>Only HR-approved visitors can be checked in</div>
                   </div>
                 )}

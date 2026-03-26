@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminTopbar  from '../../components/admin/AdminTopbar';
 import { getSecurityUsers, createSecurityUser, deactivateUser } from '../../utils/adminService';
@@ -58,7 +59,8 @@ const CreateModal = ({ onClose, onCreate }) => {
                 onClick={() => setShow(s => !s)}
                 style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', fontSize:'1rem', color:'var(--text-light)' }}
               >
-                {show ? '🙈' : '👁️'}
+             
+                 {show ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
           </div>
@@ -174,7 +176,7 @@ const SecurityUsersPage = () => {
     if (!confirmUser) return;
     setActionId(confirmUser.id);
     try {
-      await deactivateUser(confirmUser.id);
+      await deactivateUser(confirmUser.id, 'security');
       showToast(`🚫 ${confirmUser.name}'s account has been deactivated.`);
       setConfirmUser(null);
       await load();

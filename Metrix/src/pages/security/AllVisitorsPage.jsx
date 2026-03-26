@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import SecuritySidebar from '../../components/security/SecuritySidebar';
-import SecurityTopbar  from '../../components/security/SecurityTopbar';
+import SecurityTopbar  from '../../components/security/Securitytopbar';
 import { getVisitorHistory, getCheckedInVisitors } from '../../utils/securityService';
 import '../../styles/security/SecurityDashboard.css';
 
@@ -37,8 +37,15 @@ const isToday = (iso) => {
 const elapsed = (iso) => {
   if (!iso) return '';
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (diff < 60) return `${diff}m ago`;
-  return `${Math.floor(diff / 60)}h ${diff % 60}m ago`;
+  if (diff < 60) return `${diff}m`;
+  return `${Math.floor(diff / 60)}h ${diff % 60}m`;
+};
+
+const duration = (inIso, outIso) => {
+  if (!inIso || !outIso) return null;
+  const diff = Math.floor((new Date(outIso) - new Date(inIso)) / 60000);
+  if (diff < 60) return `${diff} min`;
+  return `${Math.floor(diff / 60)}h ${diff % 60}m`;
 };
 
 /* ── Status Badge ────────────────────────────────────────── */
@@ -46,6 +53,25 @@ const CheckBadge = ({ visitor }) => {
   if (visitor.checkedOutAt) return <span className="sec-badge sec-badge--out">Checked Out</span>;
   if (visitor.checkedInAt)  return <span className="sec-badge sec-badge--in">Inside</span>;
   return <span className="sec-badge sec-badge--approved">Not Arrived</span>;
+};
+
+/* ── Detail Row ──────────────────────────────────────────── */
+const DetailRow = ({ label, value, valueStyle }) => {
+  if (!value) return null;
+  return (
+    <div style={{
+      display:'flex', justifyContent:'space-between', alignItems:'flex-start',
+      padding:'10px 0', borderBottom:'1px solid var(--border-color)',
+      gap: 12,
+    }}>
+      <span style={{ fontSize:'0.75rem', fontWeight:700, letterSpacing:'0.4px', textTransform:'uppercase', color:'var(--text-light)', flexShrink:0 }}>
+        {label}
+      </span>
+      <span style={{ fontSize:'0.85rem', fontWeight:700, color:'var(--text-dark)', textAlign:'right', ...valueStyle }}>
+        {value}
+      </span>
+    </div>
+  );
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -68,7 +94,6 @@ const AllVisitorsPage = () => {
         getVisitorHistory(),
         getCheckedInVisitors(),
       ]);
-      //const list = hist || [];
       const list = (hist || []).filter(v => v.approvedAt);
       setVisitors(list);
       setInsideCount((inside || []).length);
@@ -80,24 +105,16 @@ const AllVisitorsPage = () => {
 
   const applyFilters = (source, t, q, date) => {
     let res = source;
-
-    // ── Tab filter
-    if (t === 'today') res = res.filter(v =>
-      isToday(v.visitDate) || isToday(v.checkedInAt) || isToday(v.checkedOutAt)
-    );
+    if (t === 'today')  res = res.filter(v => isToday(v.visitDate) || isToday(v.checkedInAt) || isToday(v.checkedOutAt));
     if (t === 'inside') res = res.filter(v => v.checkedInAt && !v.checkedOutAt);
-    if (t === 'out') res = res.filter(v => !!v.checkedOutAt);
-
-    // ── Date picker filter
+    if (t === 'out')    res = res.filter(v => !!v.checkedOutAt);
     if (date) {
       res = res.filter(v =>
-        toDateStr(v.visitDate) === date ||
-        toDateStr(v.checkedInAt) === date ||
+        toDateStr(v.visitDate)    === date ||
+        toDateStr(v.checkedInAt)  === date ||
         toDateStr(v.checkedOutAt) === date
       );
     }
-
-    // ── Search filter
     if (q) {
       const lower = q.toLowerCase();
       res = res.filter(v =>
@@ -107,7 +124,6 @@ const AllVisitorsPage = () => {
         v.email?.toLowerCase().includes(lower)
       );
     }
-
     setFiltered(res);
   };
 
@@ -118,9 +134,7 @@ const AllVisitorsPage = () => {
 
   const counts = {
     all:    visitors.length,
-    today:  visitors.filter(v =>
-      isToday(v.visitDate) || isToday(v.checkedInAt) || isToday(v.checkedOutAt)
-    ).length,
+    today:  visitors.filter(v => isToday(v.visitDate) || isToday(v.checkedInAt) || isToday(v.checkedOutAt)).length,
     inside: visitors.filter(v => v.checkedInAt && !v.checkedOutAt).length,
     out:    visitors.filter(v => !!v.checkedOutAt).length,
   };
@@ -165,8 +179,8 @@ const AllVisitorsPage = () => {
             <div style={{ display:'flex', gap:10, alignItems:'center' }}>
               <div className="sec-date-picker-wrap">
                 <span style={{ fontSize:'0.95rem' }}>📅</span>
-                <input type="date" className="sec-date-picker" value={dateFilter} onChange={handleDateChange} title="Filter by check-in / check-out date"/>
-                {dateFilter && <button className="sec-date-clear" onClick={clearDate} title="Clear">✕</button>}
+                <input type="date" className="sec-date-picker" value={dateFilter} onChange={handleDateChange} />
+                {dateFilter && <button className="sec-date-clear" onClick={clearDate}>✕</button>}
               </div>
               <button className="sec-refresh-btn" onClick={load}>↻ Refresh</button>
             </div>
@@ -191,8 +205,9 @@ const AllVisitorsPage = () => {
           </div>
 
           {/* Table + detail panel */}
-          <div style={{ display:'grid', gridTemplateColumns: selected ? '1fr 320px' : '1fr', gap:20 }}>
+          <div style={{ display:'grid', gridTemplateColumns: selected ? '1fr 340px' : '1fr', gap:20, alignItems:'start' }}>
 
+            {/* Table card */}
             <div className="sec-card" style={{ overflow:'visible' }}>
               <div className="sec-card__head">
                 <span className="sec-card__title">
@@ -223,11 +238,6 @@ const AllVisitorsPage = () => {
                       : tab === 'today'  ? 'No activity today'
                       : 'No visit records yet'}
                   </div>
-                  <div style={{ fontSize:'0.82rem', color:'var(--text-light)', marginTop:4 }}>
-                    {dateFilter ? 'Try a different date or clear the filter.'
-                      : tab === 'inside' ? 'Check in a visitor from the Check In / Out page.'
-                      : 'Records appear here after visitors check in.'}
-                  </div>
                   {dateFilter && (
                     <button className="sec-refresh-btn" style={{ marginTop:12, fontSize:'0.78rem' }} onClick={clearDate}>
                       Clear date filter
@@ -251,10 +261,16 @@ const AllVisitorsPage = () => {
                     </thead>
                     <tbody>
                       {filtered.map(v => (
-                        <tr key={v.id} className={`sec-table__row${selected?.id === v.id ? ' sec-table__row--selected' : ''}`} onClick={() => setSelected(selected?.id === v.id ? null : v)}>
+                        <tr
+                          key={v.id}
+                          className={`sec-table__row${selected?.id === v.id ? ' sec-table__row--selected' : ''}`}
+                          onClick={() => setSelected(selected?.id === v.id ? null : v)}
+                        >
                           <td>
                             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                              <div className="sec-visitor-avatar" style={{ width:32, height:32, fontSize:'0.72rem', flexShrink:0, background: avatarBg(v) }}>{initials(v.name)}</div>
+                              <div className="sec-visitor-avatar" style={{ width:32, height:32, fontSize:'0.72rem', flexShrink:0, background: avatarBg(v) }}>
+                                {initials(v.name)}
+                              </div>
                               <div>
                                 <div className="sec-visitor-name">{v.name}</div>
                                 <div className="sec-visitor-meta">{v.email}</div>
@@ -265,7 +281,9 @@ const AllVisitorsPage = () => {
                           <td style={{ fontSize:'0.83rem', color:'var(--text-mid)' }}>{v.purpose}</td>
                           <td style={{ fontSize:'0.83rem', whiteSpace:'nowrap' }}>{fmtDate(v.visitDate)}</td>
                           <td style={{ fontSize:'0.83rem', fontWeight:700, color:'var(--success)', whiteSpace:'nowrap' }}>{fmtTime(v.checkedInAt)}</td>
-                          <td style={{ fontSize:'0.83rem', fontWeight:700, color: v.checkedOutAt ? 'var(--danger)' : 'var(--teal-dark)', whiteSpace:'nowrap' }}>{v.checkedOutAt ? fmtTime(v.checkedOutAt) : v.checkedInAt ? 'Still inside' : '—'}</td>
+                          <td style={{ fontSize:'0.83rem', fontWeight:700, color: v.checkedOutAt ? 'var(--danger)' : 'var(--teal-dark)', whiteSpace:'nowrap' }}>
+                            {v.checkedOutAt ? fmtTime(v.checkedOutAt) : v.checkedInAt ? 'Still inside' : '—'}
+                          </td>
                           <td><CheckBadge visitor={v} /></td>
                           <td style={{ fontSize:'0.83rem', color:'var(--text-mid)' }}>{v.hrName || '—'}</td>
                         </tr>
@@ -276,43 +294,155 @@ const AllVisitorsPage = () => {
               )}
             </div>
 
-            {/* Detail panel */}
+            {/* ── Detail Panel ───────────────────────── */}
             {selected && (
-              <div className="sec-card">
-                <div className="sec-card__head">
-                  <span className="sec-card__title">Visit Details</span>
-                  <button style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-light)', fontSize:'1rem' }} onClick={() => setSelected(null)}>✕</button>
+              <div className="sec-card" style={{ position:'sticky', top:80 }}>
+
+                {/* Header — dark navy like security theme */}
+                <div style={{
+                  background:'#0f1923', borderRadius:'14px 14px 0 0',
+                  padding:'18px 20px',
+                  display:'flex', alignItems:'center', justifyContent:'space-between',
+                }}>
+                  <span style={{ fontFamily:'var(--font-heading)', fontWeight:800, fontSize:'0.9rem', color:'#fff' }}>
+                    Visit Details
+                  </span>
+                  <button
+                    onClick={() => setSelected(null)}
+                    style={{
+                      background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)',
+                      borderRadius:8, color:'rgba(255,255,255,0.6)', cursor:'pointer',
+                      width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:'0.85rem',
+                    }}
+                  >✕</button>
                 </div>
 
-                <div style={{ padding:'20px', textAlign:'center', borderBottom:'1px solid var(--border-color)' }}>
-                  <div className="sec-visitor-avatar" style={{ width:52, height:52, fontSize:'1rem', margin:'0 auto 10px', background: avatarBg(selected) }}>{initials(selected.name)}</div>
-                  <div style={{ fontFamily:'var(--font-heading)', fontWeight:800, fontSize:'1rem', color:'var(--text-dark)' }}>{selected.name}</div>
-                  <div style={{ fontSize:'0.8rem', color:'var(--text-light)', marginTop:2 }}>{selected.email}</div>
-                  <div style={{ marginTop:8 }}><CheckBadge visitor={selected} /></div>
-                  {selected.registrationId && <div style={{ marginTop:8 }}><span className="sec-visitor-reg" style={{ fontSize:'0.8rem' }}>{selected.registrationId}</span></div>}
-                </div>
-
-                <div style={{ padding:20 }}>
-                  {[
-                    ['Phone',       selected.phone],
-                    ['Purpose',     selected.purpose],
-                    ['Visit Date',  fmtDate(selected.visitDate)],
-                    ['Check In',    fmtDT(selected.checkedInAt)],
-                    ['Check Out',   fmtDT(selected.checkedOutAt)],
-                    ['Invited By',  selected.hrName],
-                    ['Approved At', fmtDT(selected.approvedAt)],
-                    ['Approved By', selected.approvedByHR],
-                  ].filter(([, val]) => val).map(([label, val]) => (
-                    <div className="sec-result__field" key={label}>
-                      <label>{label}</label>
-                      <span>{val}</span>
+                {/* Visitor profile */}
+                <div style={{
+                  padding:'20px', textAlign:'center',
+                  borderBottom:'1px solid var(--border-color)',
+                  background:'linear-gradient(180deg, #f8fafc 0%, #fff 100%)',
+                }}>
+                  <div
+                    className="sec-visitor-avatar"
+                    style={{
+                      width:60, height:60, fontSize:'1.1rem',
+                      margin:'0 auto 12px',
+                      background: avatarBg(selected),
+                      boxShadow:'0 4px 16px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    {initials(selected.name)}
+                  </div>
+                  <div style={{ fontFamily:'var(--font-heading)', fontWeight:800, fontSize:'1rem', color:'var(--text-dark)' }}>
+                    {selected.name}
+                  </div>
+                  <div style={{ fontSize:'0.78rem', color:'var(--text-light)', marginTop:3 }}>
+                    {selected.email}
+                  </div>
+                  {selected.phone && (
+                    <div style={{ fontSize:'0.78rem', color:'var(--text-mid)', marginTop:2 }}>
+                      📞 {selected.phone}
                     </div>
-                  ))}
-                  {selected.checkedInAt && !selected.checkedOutAt && (
-                    <p style={{ fontSize:'0.82rem', fontStyle:'italic', color:'var(--teal-dark)', marginTop:8 }}>
-                      Currently inside · {elapsed(selected.checkedInAt)}
-                    </p>
                   )}
+                  <div style={{ marginTop:10, display:'flex', justifyContent:'center', gap:8, flexWrap:'wrap' }}>
+                    <CheckBadge visitor={selected} />
+                    {selected.registrationId && (
+                      <span className="sec-visitor-reg" style={{ fontSize:'0.75rem' }}>
+                        {selected.registrationId}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Visit info */}
+                <div style={{ padding:'16px 20px' }}>
+
+                  {/* Visit section */}
+                  <div style={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', color:'var(--text-light)', marginBottom:8 }}>
+                    Visit Info
+                  </div>
+                  <DetailRow label="Purpose"    value={selected.purpose} />
+                  <DetailRow label="Visit Date" value={fmtDate(selected.visitDate)} />
+                  <DetailRow label="Invited By" value={selected.hrName} />
+
+                  {/* Timeline section */}
+                  <div style={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', color:'var(--text-light)', margin:'16px 0 8px' }}>
+                    Check-in Timeline
+                  </div>
+
+                  {/* Check In row */}
+                  <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
+                    <div style={{
+                      width:10, height:10, borderRadius:'50%', flexShrink:0,
+                      background: selected.checkedInAt ? 'var(--success)' : 'var(--border-color)',
+                      boxShadow: selected.checkedInAt ? '0 0 0 3px rgba(34,197,94,0.2)' : 'none',
+                    }}/>
+                    <div>
+                      <div style={{ fontSize:'0.72rem', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px', color:'var(--text-light)' }}>Check In</div>
+                      <div style={{ fontSize:'0.88rem', fontWeight:800, color: selected.checkedInAt ? 'var(--success)' : 'var(--text-light)' }}>
+                        {selected.checkedInAt ? fmtDT(selected.checkedInAt) : 'Not yet'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Connector line */}
+                  <div style={{ marginLeft:4, width:2, height:16, background:'var(--border-color)', marginBottom:8 }}/>
+
+                  {/* Check Out row */}
+                  <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
+                    <div style={{
+                      width:10, height:10, borderRadius:'50%', flexShrink:0,
+                      background: selected.checkedOutAt ? 'var(--danger)' : 'var(--border-color)',
+                      boxShadow: selected.checkedOutAt ? '0 0 0 3px rgba(239,68,68,0.2)' : 'none',
+                    }}/>
+                    <div>
+                      <div style={{ fontSize:'0.72rem', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px', color:'var(--text-light)' }}>Check Out</div>
+                      <div style={{ fontSize:'0.88rem', fontWeight:800, color: selected.checkedOutAt ? 'var(--danger)' : 'var(--teal-dark)' }}>
+                        {selected.checkedOutAt ? fmtDT(selected.checkedOutAt) : selected.checkedInAt ? '🟢 Still inside' : '—'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Duration / elapsed */}
+                  {selected.checkedInAt && selected.checkedOutAt && (
+                    <div style={{
+                      background:'var(--dash-bg)', borderRadius:10,
+                      padding:'10px 14px', marginBottom:8,
+                      display:'flex', alignItems:'center', justifyContent:'space-between',
+                    }}>
+                      <span style={{ fontSize:'0.78rem', color:'var(--text-light)', fontWeight:600 }}>⏱ Duration</span>
+                      <span style={{ fontSize:'0.88rem', fontWeight:800, color:'var(--text-dark)' }}>
+                        {duration(selected.checkedInAt, selected.checkedOutAt)}
+                      </span>
+                    </div>
+                  )}
+
+                  {selected.checkedInAt && !selected.checkedOutAt && (
+                    <div style={{
+                      background:'var(--teal-soft)', borderRadius:10,
+                      padding:'10px 14px', marginBottom:8,
+                      display:'flex', alignItems:'center', justifyContent:'space-between',
+                    }}>
+                      <span style={{ fontSize:'0.78rem', color:'var(--teal-dark)', fontWeight:600 }}>🟢 Time inside</span>
+                      <span style={{ fontSize:'0.88rem', fontWeight:800, color:'var(--teal-dark)' }}>
+                        {elapsed(selected.checkedInAt)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* ID Proof section */}
+                  {(selected.idProofType || selected.idProofNumber) && (
+                    <>
+                      <div style={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', color:'var(--text-light)', margin:'16px 0 8px' }}>
+                        ID Proof
+                      </div>
+                      <DetailRow label="Type"   value={selected.idProofType} />
+                      <DetailRow label="Number" value={selected.idProofNumber} />
+                    </>
+                  )}
+
                 </div>
               </div>
             )}

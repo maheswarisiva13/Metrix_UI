@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// FILE: src/pages/visitor/VisitorRegistrationPage.jsx   (NEW FILE)
+// src/pages/visitor/VisitorRegistrationPage.jsx  
 //
 // Flow:
 //   1. Page loads → reads ?token= from URL → GET /api/visitor/invite?token=XYZ
@@ -53,15 +53,15 @@ const VisitorRegistrationPage = () => {
   const token = new URLSearchParams(window.location.search).get('token') || '';
 
   // Invite details (pre-fill data from backend)
-  const [invite,     setInvite]     = useState(null);   // InviteDetailsDto
-  const [loadError,  setLoadError]  = useState('');     // invalid/expired token
+  const [invite,     setInvite]     = useState(null);   
+  const [loadError,  setLoadError]  = useState('');     
   const [loadingInv, setLoadingInv] = useState(true);
 
   // Form state
   const [form,        setForm]       = useState({ name: '', email: '', phone: '', idProofType: '', idProofNumber: '' });
   const [submitting,  setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [submitted,   setSubmitted]  = useState(false); // show success screen
+  const [submitted,   setSubmitted]  = useState(false); 
 
   // Step: 1=loading/validating, 2=form, 3=done
   const step = loadingInv ? 1 : submitted ? 3 : 2;

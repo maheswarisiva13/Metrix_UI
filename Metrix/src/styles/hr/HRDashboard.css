@@ -1,6 +1,6 @@
-/* ═══════════════════════════════════════════════════════════
-   HR DASHBOARD STYLES — Metrix VMS
-   ═══════════════════════════════════════════════════════════ */
+/* 
+   HR DASHBOARD STYLES — Metrix 
+*/
 
 :root {
   --sidebar-w:         240px;
@@ -26,6 +26,25 @@
   --danger-bg:         #fef2f2;
   --info:              #3b82f6;
   --info-bg:           #eff6ff;
+}
+
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+@keyframes spinAnim { to { transform: rotate(360deg); } }
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0);     }
 }
 
 /* ── Layout ──────────────────────────────────────────────── */
@@ -81,19 +100,68 @@
 
 /* ── Stat cards ──────────────────────────────────────────── */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); transition: transform 0.2s, box-shadow 0.2s; animation: fadeUp 0.4s ease both; }
+
+.stat-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.4s ease both;
+  cursor: default;
+}
 .stat-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow-hover); }
+
 .stat-card__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.stat-card__label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-light); }
-.stat-card__icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
-.stat-card__value { font-family: var(--font-heading); font-size: 2rem; font-weight: 900; color: var(--text-dark); line-height: 1; }
-.stat-card__change { font-size: 0.75rem; color: var(--text-light); margin-top: 5px; }
+
+.stat-card__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.stat-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.stat-card__value {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-card__change {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
 .stat-card__change--up   { color: var(--success); }
 .stat-card__change--down { color: var(--danger);  }
+
+/* stagger */
 .stat-card:nth-child(1) { animation-delay: 0.05s; }
 .stat-card:nth-child(2) { animation-delay: 0.10s; }
 .stat-card:nth-child(3) { animation-delay: 0.15s; }
 .stat-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* ── Today's Visits card accent ─────────────────────────── */
+.stat-card:nth-child(1) { border-top: 3px solid var(--info);    }
+.stat-card:nth-child(2) { border-top: 3px solid var(--warning); }
+.stat-card:nth-child(3) { border-top: 3px solid var(--success); }
+.stat-card:nth-child(4) { border-top: 3px solid var(--teal);    }
 
 /* ── Content cards ───────────────────────────────────────── */
 .content-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); overflow: hidden; animation: fadeUp 0.4s ease both; }
@@ -147,7 +215,6 @@
 .btn--sm { padding: 6px 12px; font-size: 0.78rem; border-radius: 8px; }
 .btn--icon { padding: 7px; border-radius: 8px; }
 .btn .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spinAnim 0.6s linear infinite; }
-@keyframes spinAnim { to { transform: rotate(360deg); } }
 
 /* ── Modal ───────────────────────────────────────────────── */
 .dash-modal-overlay { position: fixed; inset: 0; background: rgba(10,20,35,0.45); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; animation: fadeUp 0.18s ease; }
@@ -193,7 +260,6 @@
 
 /* ── Visitor detail panel ────────────────────────────────── */
 .detail-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 380px; background: #fff; border-left: 1px solid var(--border-color); box-shadow: -8px 0 32px rgba(0,0,0,0.1); z-index: 60; display: flex; flex-direction: column; animation: slideInRight 0.3s cubic-bezier(0.34,1,0.64,1); }
-@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 .detail-panel__head { padding: 18px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
 .detail-panel__body { flex: 1; overflow-y: auto; padding: 20px; }
 .detail-section { margin-bottom: 20px; }
@@ -235,6 +301,11 @@
 /* ── Count badge in card title ───────────────────────────── */
 .hr-count-badge { display: inline-block; background: var(--teal-soft); color: var(--teal-dark); font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; margin-left: 6px; }
 
+/* ── Toast ───────────────────────────────────────────────── */
+.hr-toast { position: fixed; top: 80px; right: 28px; padding: 14px 20px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.14); animation: slideDown 0.25s ease both; max-width: 360px; line-height: 1.4; }
+.hr-toast--success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.hr-toast--error   { background: var(--danger-bg);  color: var(--danger);  border: 1px solid rgba(239,68,68,0.25); }
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
@@ -243,4 +314,10 @@
   .two-col, .three-col { grid-template-columns: 1fr; }
   .detail-panel { width: 100%; }
   .field-row { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .page-content { padding: 16px; }
 }

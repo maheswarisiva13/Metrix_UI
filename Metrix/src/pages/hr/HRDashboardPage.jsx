@@ -15,7 +15,7 @@ import { getUser } from '../../utils/auth';
 import '../../styles/hr/HRDashboard.css';
 
 /* ── Stat card ────────────────────────────────────────── */
-const StatCard = ({ label, value, icon, bg, color, change, delay }) => (
+const StatCard = ({ label, value, icon, bg, color, sub, delay }) => (
   <div className="stat-card" style={{ animationDelay: delay }}>
     <div className="stat-card__top">
       <span className="stat-card__label">{label}</span>
@@ -24,24 +24,23 @@ const StatCard = ({ label, value, icon, bg, color, change, delay }) => (
       </div>
     </div>
     <div className="stat-card__value" style={{ color }}>{value ?? '—'}</div>
-    {change && <div className={`stat-card__change stat-card__change--${change.dir}`}>{change.text}</div>}
+    {sub && <div className="stat-card__change">{sub}</div>}
   </div>
 );
 
 /* ── Dashboard ────────────────────────────────────────── */
 const HRDashboardPage = () => {
-  const navigate        = useNavigate();
-  const user            = getUser();
-  const firstName       = user?.name?.split(' ')[0] || 'HR';
+  const navigate  = useNavigate();
+  const user      = getUser();
+  const firstName = user?.name?.split(' ')[0] || 'HR';
 
   const [stats,    setStats]    = useState(null);
   const [pending,  setPending]  = useState([]);
   const [recent,   setRecent]   = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [selected, setSelected] = useState(null);
-  const [actLoad,  setActLoad]  = useState(null);  // 'approve' | 'reject'
+  const [actLoad,  setActLoad]  = useState(null);
 
-  /* fetch data */
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -60,18 +59,16 @@ const HRDashboardPage = () => {
 
   useEffect(() => { load(); }, [load]);
 
-  /* approve */
   const handleApprove = async (id) => {
     setActLoad('approve');
     try {
       await approveVisitor(id);
       setPending(p => p.filter(v => v.id !== id));
       setSelected(null);
-      await load();  // refresh stats
+      await load();
     } finally { setActLoad(null); }
   };
 
-  /* reject */
   const handleReject = async (id) => {
     setActLoad('reject');
     try {
@@ -83,11 +80,44 @@ const HRDashboardPage = () => {
   };
 
   const statCards = [
-    { label:'Total Invitations', value: stats?.totalInvitations, icon:'✉️', bg:'#e0f7f5', color:'var(--teal-dark)', delay:'0.05s' },
-    { label:'Pending Approvals', value: stats?.pendingApprovals, icon:'⏳', bg:'#fffbeb', color:'var(--warning)',   delay:'0.10s',
-      change: stats?.pendingApprovals > 0 ? { dir:'down', text:`${stats.pendingApprovals} need action` } : null },
-    { label:'Approved',          value: stats?.approvedToday,    icon:'✅', bg:'#f0fdf4', color:'var(--success)',   delay:'0.15s' },
-    { label:'Total Visitors',    value: stats?.totalVisitors,    icon:'👥', bg:'#eff6ff', color:'var(--info)',      delay:'0.20s' },
+    {
+      label : "Today's Expected Visits",
+      value : stats?.todaysVisits,
+      icon  : '📅',
+      bg    : '#eff6ff',
+      color : 'var(--info)',
+      sub   : 'Scheduled today',
+      delay : '0.05s',
+    },
+    {
+      label : 'Pending Approvals',
+      value : stats?.pendingApprovals,
+      icon  : '⏳',
+      bg    : '#fffbeb',
+      color : 'var(--warning)',
+      sub   : stats?.pendingApprovals > 0
+                ? `${stats.pendingApprovals} need action`
+                : 'All caught up',
+      delay : '0.10s',
+    },
+    {
+      label : 'Approved',
+      value : stats?.approvedThisWeek,
+      icon  : '✅',
+      bg    : '#f0fdf4',
+      color : 'var(--success)',
+      sub   : 'This week',
+      delay : '0.15s',
+    },
+    {
+      label : 'Inside Now',
+      value : stats?.insideNow,
+      icon  : '🟢',
+      bg    : 'var(--teal-soft)',
+      color : 'var(--teal-dark)',
+      sub   : 'Currently in building',
+      delay : '0.20s',
+    },
   ];
 
   return (
@@ -161,7 +191,7 @@ const HRDashboardPage = () => {
                         <td>
                           <div className="visitor-cell">
                             <div className="visitor-avatar">
-                              {v.name?.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}
+                              {v.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                             </div>
                             <div>
                               <div className="visitor-name">{v.name}</div>
@@ -170,8 +200,8 @@ const HRDashboardPage = () => {
                           </div>
                         </td>
                         <td>{v.purpose}</td>
-                        <td style={{ whiteSpace:'nowrap' }}>
-                          {new Date(v.visitDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          {new Date(v.visitDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}
                         </td>
                         <td onClick={e => e.stopPropagation()}>
                           <div style={{ display:'flex', gap:6 }}>
@@ -231,8 +261,8 @@ const HRDashboardPage = () => {
                             {v.name} — <StatusBadge status={v.status} />
                           </div>
                           <div className="timeline__meta">
-                            {v.company} · {v.purpose} ·{' '}
-                            {new Date(v.submittedAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
+                            {v.purpose} 
+                           
                           </div>
                         </div>
                       </div>
@@ -253,16 +283,10 @@ const HRDashboardPage = () => {
               <span style={{ fontFamily:'var(--font-heading)', fontWeight:800, color:'var(--text-dark)', flex:1, minWidth:200 }}>
                 ✉️ Need to invite a visitor?
               </span>
-              <button
-                className="btn btn--primary"
-                onClick={() => navigate('/hr/invite')}
-              >
+              <button className="btn btn--primary" onClick={() => navigate('/hr/invite')}>
                 + Send Invitation
               </button>
-              <button
-                className="btn btn--outline"
-                onClick={() => navigate('/hr/visitors')}
-              >
+              <button className="btn btn--outline" onClick={() => navigate('/hr/visitors')}>
                 View All Visitors
               </button>
             </div>
@@ -271,7 +295,6 @@ const HRDashboardPage = () => {
         </div>{/* end page-content */}
       </div>{/* end hr-main */}
 
-      {/* Slide-in detail panel */}
       {selected && (
         <VisitorDetailPanel
           visitor={selected}

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// FILE: src/utils/visitorService.js   (NEW FILE)
+// FILE: src/utils/visitorService.js   
 // Public API — no JWT. Token from URL identifies the visitor.
 // ─────────────────────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-/* ── Auth Utilities — Metrix VMS ──────────────────────────── */
+/* ── Auth Utilities — Metrix  ──────────────────────────── */
 
 const TOKEN_KEY = 'metrix_token';
 const USER_KEY  = 'metrix_user';
